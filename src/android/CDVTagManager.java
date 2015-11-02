@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2014 Jared Dickson
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,17 +22,17 @@
 
 package com.jareddickson.cordova.tagmanager;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaInterface;
 
-import com.google.analytics.tracking.android.GAServiceManager;
-import com.google.tagmanager.Container;
-import com.google.tagmanager.ContainerOpener;
-import com.google.tagmanager.ContainerOpener.OpenType;
-import com.google.tagmanager.DataLayer;
-import com.google.tagmanager.TagManager;
+import com.google.android.gms.tagmanager.*;
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,23 +58,30 @@ public class CDVTagManager extends CordovaPlugin {
         if (action.equals("initGTM")) {
             try {
                 // Set the dispatch interval
-                GAServiceManager.getInstance().setLocalDispatchPeriod(args.getInt(1));
+            	GoogleAnalytics.getInstance(this.cordova.getActivity().getApplicationContext()).setLocalDispatchPeriod(args.getInt(1));
 
                 TagManager tagManager = TagManager.getInstance(this.cordova.getActivity().getApplicationContext());
-                ContainerOpener.openContainer(
-                        tagManager,                             // TagManager instance.
-                        args.getString(0),                      // Tag Manager Container ID.
-                        OpenType.PREFER_NON_DEFAULT,            // Prefer not to get the default container, but stale is OK.
-                        null,                                   // Time to wait for saved container to load (ms). Default is 2000ms.
-                        new ContainerOpener.Notifier() {        // Called when container loads.
-                            @Override
-                            public void containerAvailable(Container container) {
-                                // Handle assignment in callback to avoid blocking main thread.
-                                mContainer = container;
-                                inited = true;
-                            }
-                        }
-                );
+//                PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferNonDefault(args.getString(0), R.raw.gtm_default_container);
+                PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferNonDefault(args.getString(0), 0);
+
+             // The onResult method will be called as soon as one of the following happens:
+//              1. a saved container is loaded
+//              2. if there is no saved container, a network container is loaded
+//              3. the request times out. The example below uses a constant to manage the timeout period.
+				 pending.setResultCallback(new ResultCallback<ContainerHolder>() {
+				     @Override
+				     public void onResult(ContainerHolder containerHolder) {
+				         mContainer = containerHolder.getContainer();
+				         if (!containerHolder.getStatus().isSuccess()) {
+				             return;
+				         }
+				         inited = true;
+//				         ContainerHolderSingleton.setContainerHolder(containerHolder);
+//				         ContainerLoadedCallback.registerCallbacksForContainer(container);
+//				         containerHolder.setContainerAvailableListener(new ContainerLoadedCallback());
+				     }
+				 }, 2, TimeUnit.SECONDS);
+
                 callback.success("initGTM - id = " + args.getString(0) + "; interval = " + args.getInt(1) + " seconds");
                 return true;
             } catch (final Exception e) {
@@ -106,6 +113,19 @@ public class CDVTagManager extends CordovaPlugin {
             } else {
                 callback.error("trackEvent failed - not initialized");
             }
+          } else if (action.equals("trackCustomEvent")) {
+              if (inited) {
+                  try {
+                      DataLayer dataLayer = TagManager.getInstance(this.cordova.getActivity().getApplicationContext()).getDataLayer();
+                      dataLayer.push(DataLayer.mapOf("event", args.getString(0), args.getString(1), args.getString(2)));
+                      callback.success("trackCustomEvent - event = " + args.getString(0) + "; label = " + args.getString(1) + "; value = " + args.getString(2));
+                      return true;
+                  } catch (final Exception e) {
+                      callback.error(e.getMessage());
+                  }
+              } else {
+                  callback.error("trackCustomEvent failed - not initialized");
+              }
         } else if (action.equals("trackPage")) {
             if (inited) {
                 try {
@@ -122,7 +142,7 @@ public class CDVTagManager extends CordovaPlugin {
         } else if (action.equals("dispatch")) {
             if (inited) {
                 try {
-                    GAServiceManager.getInstance().dispatchLocalHits();
+                    GoogleAnalytics.getInstance(this.cordova.getActivity().getApplicationContext()).dispatchLocalHits();
                     callback.success("dispatch sent");
                     return true;
                 } catch (final Exception e) {
