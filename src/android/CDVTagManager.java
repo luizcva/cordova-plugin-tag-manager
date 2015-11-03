@@ -57,28 +57,34 @@ public class CDVTagManager extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, CallbackContext callback) {
         if (action.equals("initGTM")) {
             try {
-                // Set the dispatch interval
-            	GoogleAnalytics.getInstance(this.cordova.getActivity().getApplicationContext()).setLocalDispatchPeriod(args.getInt(1));
+                /* Set the dispatch interval
+                 */
+                GoogleAnalytics.getInstance(this.cordova.getActivity().getApplicationContext()).setLocalDispatchPeriod(args.getInt(1));
 
                 TagManager tagManager = TagManager.getInstance(this.cordova.getActivity().getApplicationContext());
-//                PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferNonDefault(args.getString(0), R.raw.gtm_default_container);
-                PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferNonDefault(args.getString(0), 0);
+               
+                /* Modify the log level of the logger to print out not only
+                 * warning and error messages, but also verbose, debug, info messages.
+                 */
+                tagManager.setVerboseLoggingEnabled(true);
 
-             // The onResult method will be called as soon as one of the following happens:
-//              1. a saved container is loaded
-//              2. if there is no saved container, a network container is loaded
-//              3. the request times out. The example below uses a constant to manage the timeout period.
-				 pending.setResultCallback(new ResultCallback<ContainerHolder>() {
-				     @Override
-				     public void onResult(ContainerHolder containerHolder) {
-				         mContainer = containerHolder.getContainer();
-				         if (!containerHolder.getStatus().isSuccess()) {
-				             return;
-				         }
-				         inited = true;
-//				         ContainerHolderSingleton.setContainerHolder(containerHolder);
-//				         ContainerLoadedCallback.registerCallbacksForContainer(container);
-//				         containerHolder.setContainerAvailableListener(new ContainerLoadedCallback());
+                /* The onResult method will be called as soon as one of the following happens:
+                 * 1. a saved container is loaded
+                 * 2. if there is no saved container, a network container is loaded
+                 * 3. the request times out. The example below uses a constant to manage the timeout period.
+                 */
+                PendingResult<ContainerHolder> pending = tagManager.loadContainerPreferNonDefault(args.getString(0), -1);
+                pending.setResultCallback(new ResultCallback<ContainerHolder>() {
+                    @Override
+                    public void onResult(ContainerHolder containerHolder) {
+                        mContainer = containerHolder.getContainer();
+                        if (!containerHolder.getStatus().isSuccess()) {
+                            return;
+                        }
+                        inited = true;
+                        //ContainerHolderSingleton.setContainerHolder(containerHolder);
+                        //ContainerLoadedCallback.registerCallbacksForContainer(container);
+                        //containerHolder.setContainerAvailableListener(new ContainerLoadedCallback());
 				     }
 				 }, 2, TimeUnit.SECONDS);
 
@@ -87,6 +93,7 @@ public class CDVTagManager extends CordovaPlugin {
             } catch (final Exception e) {
                 callback.error(e.getMessage());
             }
+
         } else if (action.equals("exitGTM")) {
             try {
                 inited = false;
@@ -95,6 +102,7 @@ public class CDVTagManager extends CordovaPlugin {
             } catch (final Exception e) {
                 callback.error(e.getMessage());
             }
+
         } else if (action.equals("trackEvent")) {
             if (inited) {
                 try {
@@ -113,19 +121,21 @@ public class CDVTagManager extends CordovaPlugin {
             } else {
                 callback.error("trackEvent failed - not initialized");
             }
-          } else if (action.equals("trackCustomEvent")) {
-              if (inited) {
-                  try {
-                      DataLayer dataLayer = TagManager.getInstance(this.cordova.getActivity().getApplicationContext()).getDataLayer();
-                      dataLayer.push(DataLayer.mapOf("event", args.getString(0), args.getString(1), args.getString(2)));
-                      callback.success("trackCustomEvent - event = " + args.getString(0) + "; label = " + args.getString(1) + "; value = " + args.getString(2));
-                      return true;
-                  } catch (final Exception e) {
-                      callback.error(e.getMessage());
-                  }
-              } else {
-                  callback.error("trackCustomEvent failed - not initialized");
-              }
+
+        } else if (action.equals("trackCustomEvent")) {
+            if (inited) {
+                try {
+                    DataLayer dataLayer = TagManager.getInstance(this.cordova.getActivity().getApplicationContext()).getDataLayer();
+                    dataLayer.push(DataLayer.mapOf("event", args.getString(0), args.getString(1), args.getString(2)));
+                    callback.success("trackCustomEvent - event = " + args.getString(0) + "; label = " + args.getString(1) + "; value = " + args.getString(2));
+                    return true;
+                } catch (final Exception e) {
+                    callback.error(e.getMessage());
+                }
+            } else {
+                callback.error("trackCustomEvent failed - not initialized");
+            }
+
         } else if (action.equals("trackPage")) {
             if (inited) {
                 try {
@@ -139,6 +149,7 @@ public class CDVTagManager extends CordovaPlugin {
             } else {
                 callback.error("trackPage failed - not initialized");
             }
+
         } else if (action.equals("dispatch")) {
             if (inited) {
                 try {
@@ -152,6 +163,7 @@ public class CDVTagManager extends CordovaPlugin {
                 callback.error("dispatch failed - not initialized");
             }
         }
+        
         return false;
     }
 }
