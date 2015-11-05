@@ -66,7 +66,7 @@ public class CDVTagManager extends CordovaPlugin {
                 /* Modify the log level of the logger to print out not only
                  * warning and error messages, but also verbose, debug, info messages.
                  */
-                tagManager.setVerboseLoggingEnabled(true);
+                tagManager.setVerboseLoggingEnabled(false);
 
                 /* The onResult method will be called as soon as one of the following happens:
                  * 1. a saved container is loaded
