@@ -5,6 +5,8 @@ This is a fork from:
 
 Keep this project as a fork, making easier possibles merge of future improvements from the origin project.
 
+For now, the plugin interface has not changed so the original documentation keeps fully in accordance.
+
 # Tag Manager
 
 ---
