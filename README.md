@@ -1,3 +1,10 @@
+# Attention
+
+This is a fork from:
+    https://github.com/kraihn/cordova-plugin-tag-manager
+
+Keep this project as a fork, making easier possibles merge of future improvements from the origin project.
+
 # Tag Manager
 
 ---
