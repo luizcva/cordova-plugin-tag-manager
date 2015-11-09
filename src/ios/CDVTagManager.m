@@ -42,7 +42,7 @@
     // Open a container.
     [TAGContainerOpener openContainerWithId:accountID
                                  tagManager:self.tagManager
-                                   openType:kTAGOpenTypePreferNonDefault
+                                   openType:kTAGOpenTypePreferFresh
                                     timeout:nil
                                    notifier:self];
     [self successWithMessage:[NSString stringWithFormat:@"initGTM: accountID = %@; Interval = %d seconds",accountID, dispatchPeriod] toID:callbackId];
