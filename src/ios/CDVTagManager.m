@@ -34,7 +34,7 @@
 
     // Modify the log level of the logger to print out not only
     // warning and error messages, but also verbose, debug, info messages.
-    [self.tagManager.logger setLogLevel:kTAGLoggerLogLevelVerbose];
+    [self.tagManager.logger setLogLevel:kTAGLoggerLogLevelError];
 
     // Set the dispatch interval
     self.tagManager.dispatchInterval = dispatchPeriod;
