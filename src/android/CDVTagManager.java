@@ -86,7 +86,7 @@ public class CDVTagManager extends CordovaPlugin {
                         //ContainerLoadedCallback.registerCallbacksForContainer(container);
                         //containerHolder.setContainerAvailableListener(new ContainerLoadedCallback());
 				     }
-				 }, 2, TimeUnit.SECONDS);
+				 }, 15, TimeUnit.SECONDS);
 
                 callback.success("initGTM - id = " + args.getString(0) + "; interval = " + args.getInt(1) + " seconds");
                 return true;
