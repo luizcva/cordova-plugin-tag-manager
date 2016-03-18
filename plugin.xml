@@ -22,7 +22,7 @@
             <uses-permission android:name="android.permission.INTERNET" />
         </config-file>
         <config-file parent="application" target="AndroidManifest.xml">
-          <meta-data android:name="com.google.android.gms.version" android:value="26" />
+          <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
           <receiver android:enabled="true" android:name="com.google.android.gms.analytics.AnalyticsReceiver">
               <intent-filter>
                   <action android:name="com.google.android.gms.analytics.ANALYTICS_DISPATCH" />
@@ -37,7 +37,9 @@
            <service android:name="com.google.android.gms.analytics.CampaignTrackingService" />
         </config-file>
         <source-file src="src/android/CDVTagManager.java" target-dir="src/com/jareddickson/cordova/tagmanager"/>
-        <source-file src="src/android/google-play-services.jar" target-dir="libs" />
+        <!--<source-file src="src/android/google-play-services.jar" target-dir="libs" />-->
+        <framework src="com.google.android.gms:play-services:+" />
+        <framework src="com.android.support:appcompat-v7:21+" />
     </platform>
     <platform name="ios">
         <config-file parent="/*" target="config.xml">
